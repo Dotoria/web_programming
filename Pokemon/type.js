@@ -1,0 +1,19 @@
+// type
+let normal = 0;    // 노말 타입
+let fire = 0;      // 불꽃 타입
+let water = 0;     // 물 타입
+let grass = 0;     // 풀 타입
+let electric = 0;  // 전기 타입
+let ice = 0;       // 얼음 타입
+let fighting = 0;  // 격투 타입
+let poison = 0;    // 독 타입
+let ground = 0;    // 땅 타입
+let flying = 0;    // 비행 타입
+let psychic = 0;   // 에스퍼 타입
+let bug = 0;       // 벌레 타입
+let rock = 0;      // 바위 타입
+let ghost = 0;     // 고스트 타입
+let dragon = 0;    // 드래곤 타입
+let dark = 0;      // 악 타입
+let steel = 0;     // 강철 타입
+let fairy = 0;     // 페어리 타입
