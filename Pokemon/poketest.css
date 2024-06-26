@@ -2,6 +2,7 @@ body {
     display: block;
     font-family: '함초롬바탕', Arial, serif;
     text-align: center;
+    padding: 3%;
 }
 
 a {
@@ -20,12 +21,36 @@ article form {
     text-align: left;
 }
 
+table {
+    width: 100%;
+}
+
+td {
+    text-align: center;
+}
+
+th {
+    width: 13%;
+}
+
+th:nth-child(1) {
+    width: auto;
+}
+
+td:nth-child(1) {
+    text-align: left;
+}
+
 button {
     border: 3px solid red;
     background-color: lightyellow;
     width: 300px;
     height: 90px;
     font-size: 1.4em;
+}
+
+button:hover {
+    background-color: burlywood;
 }
 
 footer {

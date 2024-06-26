@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link type="text/css" rel="stylesheet" href="poketest.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="review.js"></script>
+    <script src="type.js"></script>
+    <title>test</title>
+</head>
+<body>
+    여기에 processor bar 삽입 예정 <br>
+
+    <span id="question"></span>
+    <script>
+        //if (!sessionStorage.process) { sessionStorage.process = 0; }
+        //else { sessionStorage.process = 0; }
+
+        var result = '';
+        result += '<table><thead><tr><th></th> <th>매우 그렇다</th> <th>그런 편이다</th>\
+            <th>때에 따라 다르다</th> <th>그렇지 않은 편이다</th> <th>전혀 그렇지 않다</th></tr></thead><tbody>';
+        var request = new XMLHttpRequest();
+        request.open("get", 'question.csv', false);
+        request.send(null);
+
+        var csvData = request.responseText;
+        var row = csvData.split(/\r?\n|\r/);
+        //var rowLength = row.length < parseInt(sessionStorage.process) + 20 ? row.length : parseInt(sessionStorage.process) + 20;
+        
+        for (var i = 0; i < row.length; i++) {
+        //for (var i = sessionStorage.process; i < rowLength; i++) {
+            result += '<tr>';
+            result += '<td>';
+            result += i+1;
+            result += '. ';
+            result += col[0];
+            result += '</td>';
+            var col = row[i].split(',');
+
+            for (var j = 1; j < col.length; j++) {
+                result += '<td>';
+                result += '<input type="radio" name="t';
+                result += i;
+                result += '" value="';
+                result += col[j];
+                result += '"></input>';
+                result += '</td>';
+            }
+        }
+        result += '</tr>';
+        result += '</tbody></table>';
+        document.getElementById('question').innerHTML = result;
+        //sessionStorage.process = parseInt(sessionStorage.process) + 20;
+    </script>
+
+    <input type="button" value="뒤로 가기" onClick="history.back()" />
+    <input type="button" value="다음으로" onClick="'test.html'" />
+    <!--<input type="button" value="다음으로" onClick="history.pushState({}, '', test2.html)" />-->
+</body>
+</html>
