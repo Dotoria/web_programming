@@ -21,8 +21,15 @@ article form {
     text-align: left;
 }
 
+.table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 table {
     width: 100%;
+    border-collapse: collapse;
 }
 
 td {
@@ -41,16 +48,32 @@ td:nth-child(1) {
     text-align: left;
 }
 
-button {
+button,
+input[type="button"],
+input[type="submit"] {
     border: 3px solid red;
     background-color: lightyellow;
     width: 300px;
+    max-width: 90%;
     height: 90px;
     font-size: 1.4em;
+    border-radius: 6px;
+    cursor: pointer;
 }
 
-button:hover {
+button:hover,
+input[type="button"]:hover,
+input[type="submit"]:hover {
     background-color: burlywood;
+}
+
+button:disabled,
+input[type="button"]:disabled,
+input[type="submit"]:disabled {
+    border-color: #ccc;
+    background-color: #eee;
+    color: #999;
+    cursor: not-allowed;
 }
 
 footer {
@@ -58,4 +81,37 @@ footer {
     margin: 0px 0px 0px 0px;
     position: static;
     text-align: center;
+}
+
+/* 모바일 화면 대응 */
+@media (max-width: 600px) {
+    body {
+        padding: 4% 2%;
+    }
+
+    button,
+    input[type="button"],
+    input[type="submit"] {
+        width: 100%;
+        max-width: 260px;
+        height: auto;
+        padding: 14px 10px;
+        font-size: 1.1em;
+        margin: 4px 0;
+    }
+
+    table {
+        font-size: 0.8em;
+    }
+
+    th,
+    td {
+        padding: 4px 2px;
+    }
+
+    fieldset input[type="text"],
+    fieldset input[type="password"],
+    fieldset textarea {
+        width: 90%;
+    }
 }

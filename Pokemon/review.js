@@ -1,19 +1,27 @@
-function submit() {
-    let result;
+function validateReview() {
+    var name = document.getElementsByName("name")[0].value;
+    var nameExp = /^.{0,20}$/;
 
-    let name = document.getElementsByName("name").value;
-    let nameExp = /^\.{1, 20}$/;
+    var pass = document.getElementsByName("pass")[0].value;
+    var passExp = /^\d{4}$/;
 
-    let pass = document.getElementsByName("pass").value;
-    let passExp = /^\d{4}$/;
+    var review = document.getElementsByName("review")[0].value;
 
-    let review = document.getElementsByName("review").value;
-    let reviewExp = /.+/;
+    var resultEl = document.getElementById("result");
 
-    if (!nameExp.test(name)) { result = "이름은 20자 이하로 작성해주세요."; }
-    else if (!passExp.test(pass)) { result = "패스워드는 4개의 숫자로 작성해주세요."; }
-    else if (!reviewExp.test(review)) { result = "리뷰에 아무것도 쓰이지 않았습니다."; } 
-    else { result = ""; }
+    if (!nameExp.test(name)) {
+        resultEl.innerText = "이름은 20자 이하로 작성해주세요.";
+        return false;
+    }
+    if (!passExp.test(pass)) {
+        resultEl.innerText = "패스워드는 4개의 숫자로 작성해주세요.";
+        return false;
+    }
+    if (review.trim() === "") {
+        resultEl.innerText = "리뷰에 아무것도 쓰이지 않았습니다.";
+        return false;
+    }
 
-    document.getElementsByName("result").innerHTML = result;
+    resultEl.innerText = "";
+    return true;
 }

@@ -22,9 +22,13 @@
   version="6.0"
   metadata-complete="true">
 
-  <display-name>Welcome to Tomcat</display-name>
+  <display-name>Poketest</display-name>
   <description>
-     Welcome to Tomcat
+     포켓몬 타입 성격 테스트
   </description>
+
+  <welcome-file-list>
+    <welcome-file>poketest.html</welcome-file>
+  </welcome-file-list>
 
 </web-app>

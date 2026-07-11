@@ -1,0 +1,7 @@
+# 런타임에 생성되는 리뷰 저장 파일 (사용자 제출 데이터, 커밋하지 않음)
+Pokemon/WEB-INF/reviews.dat
+
+# OS / 에디터
+Thumbs.db
+.DS_Store
+*.swp

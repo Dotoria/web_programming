@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link type="text/css" rel="stylesheet" href="poketest.css">
+    <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    <script src="type.js"></script>
+    <title>Poketest 결과</title>
+</head>
+<body>
+    <header>
+        <br><h1>당신의 포켓몬 타입은?</h1><br>
+        <hr />
+    </header>
+
+    <br>
+
+    <div id="result"></div>
+
+    <br>
+    <input type="button" value="다시 하기" onclick="retakeTest()" />
+    <input type="button" value="처음으로" onclick="location.href='poketest.html'" />
+
+    <script>
+        var ANSWERS_KEY = 'poketestAnswers';
+        var PAGE_KEY = 'poketestPage';
+
+        function retakeTest() {
+            localStorage.removeItem(ANSWERS_KEY);
+            localStorage.removeItem(PAGE_KEY);
+            location.href = 'test.html';
+        }
+
+        function typeNames(keys) {
+            if (!keys || keys.length === 0) return '—';
+            var names = [];
+            for (var i = 0; i < keys.length; i++) {
+                names.push(TYPE_INFO[keys[i]].name);
+            }
+            return names.join(', ');
+        }
+
+        function renderTypeCard(info) {
+            var html = '';
+            html += '<h3>' + info.name + ' (' + info.pokemon + ')</h3>';
+            html += '<p><strong>표면</strong>: ' + info.surface + '</p>';
+            html += '<p><strong>내면</strong>: ' + info.inner + '</p>';
+            html += '<ul style="text-align:left; display:inline-block;">';
+            html += '<li>나를 흔드는 상대: ' + typeNames(info.weakTo) + '</li>';
+            html += '<li>나에게 잘 안 통하는 상대: ' + typeNames(info.resists) + '</li>';
+            html += '<li>내가 주도권을 쥐는 상대: ' + typeNames(info.strongAgainst) + '</li>';
+            html += '</ul>';
+            if (info.note) {
+                html += '<p><em>' + info.note + '</em></p>';
+            }
+            return html;
+        }
+
+        function renderBars(averages) {
+            var sorted = TYPE_ORDER.slice();
+            sorted.sort(function (a, b) { return averages[b] - averages[a]; });
+
+            var html = '<div class="table-scroll"><table style="width:80%; min-width:280px; margin:0 auto;">';
+            for (var i = 0; i < sorted.length; i++) {
+                var type = sorted[i];
+                var avg = averages[type];
+                var widthPct = Math.max(0, Math.min(100, (avg / 5) * 100));
+                html += '<tr>';
+                html += '<td style="text-align:right; width:15%;">' + TYPE_INFO[type].name + '</td>';
+                html += '<td style="width:65%;"><div style="background:#eee; border-radius:4px; overflow:hidden;">' +
+                    '<div style="background:burlywood; width:' + widthPct.toFixed(0) + '%; height:14px;"></div></div></td>';
+                html += '<td style="width:20%; text-align:left;">' + avg.toFixed(1) + ' / 5</td>';
+                html += '</tr>';
+            }
+            html += '</table></div>';
+            return html;
+        }
+
+        var resultEl = document.getElementById('result');
+        var saved = localStorage.getItem(ANSWERS_KEY);
+
+        if (!saved) {
+            resultEl.innerHTML = '<p>아직 테스트를 완료하지 않으셨어요.</p>' +
+                '<input type="button" value="테스트 하러 가기" onclick="location.href=\'test.html\'" />';
+        } else {
+            var answers = JSON.parse(saved);
+            var scores = computeTypeScores(answers);
+            var topTypes = getTopTypes(scores.averages, 2);
+            var primary = TYPE_INFO[topTypes[0]];
+            var secondary = TYPE_INFO[topTypes[1]];
+
+            var html = '';
+            html += '<section id="main-type">';
+            html += '<h2>' + primary.name + ' / ' + secondary.name + ' 타입입니다!</h2>';
+            html += renderTypeCard(primary);
+            html += '<hr>';
+            html += renderTypeCard(secondary);
+            html += '</section>';
+
+            html += '<br><section id="all-scores">';
+            html += '<h2>전체 타입 점수</h2>';
+            html += renderBars(scores.averages);
+            html += '</section>';
+
+            resultEl.innerHTML = html;
+        }
+    </script>
+
+    <br>
+    <footer>
+        <a href="review.jsp">리뷰 남기러 가기</a>
+    </footer>
+</body>
+</html>

@@ -1,55 +1,154 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link type="text/css" rel="stylesheet" href="poketest.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
-    <script src="review.js"></script>
-    <script src="type.js"></script>
-    <title>test</title>
+    <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    <title>Poketest - 테스트</title>
 </head>
 <body>
-    여기에 processor bar 삽입 예정 <br>
+    <header>
+        <br><h1>포켓몬 타입 테스트</h1><br>
+        <hr />
+    </header>
+
     <br>
-    <span id="question"></span>
+    <div id="progress"></div>
+    <br>
+    <div class="table-scroll"><span id="question"></span></div>
+    <br>
+    <input type="button" id="prevBtn" value="뒤로 가기" />
+    <input type="button" id="nextBtn" value="다음으로" />
+
     <script>
-        var result = '';
-        result += '<table><thead><tr><th></th> <th>매우 그렇다</th> <th>그런 편이다</th>\
-            <th>때에 따라 다르다</th> <th>그렇지 않은 편이다</th> <th>전혀 그렇지 않다</th></tr></thead><tbody>';
+        var PAGE_SIZE = 10;
+        var ANSWERS_KEY = 'poketestAnswers';
+        var PAGE_KEY = 'poketestPage';
+
         var request = new XMLHttpRequest();
-        request.open("get", 'question.csv', false);
+        request.open('get', 'question.csv', false);
         request.send(null);
 
-        var csvData = request.responseText;
-        var row = csvData.split(/\r?\n|\r/);
-        
-        for (var i = 0; i < row.length; i++) {
-            result += '<tr>';
-            var col = row[i].split(',');
-            result += '<td>';
-            result += i+1;
-            result += '. ';
-            result += col[0];
-            result += '</td>';
+        var rows = request.responseText.split(/\r?\n|\r/);
+        var questions = [];
+        for (var i = 0; i < rows.length; i++) {
+            if (!rows[i]) continue;
 
-            for (var j = 1; j < col.length; j++) {
-                result += '<td>';
-                result += '<input type="radio" name="t';
-                result += i;
-                result += '" value="';
-                result += col[j];
-                result += '"></input>';
-                result += '</td>';
-            }
+            // 질문 텍스트에 쉼표가 포함될 수 있으므로, 뒤에서부터 고정 6개 필드(타입, 점수5개)를 떼어내고
+            // 나머지를 질문 텍스트로 합친다.
+            var tokens = rows[i].split(',');
+            var fields = tokens.slice(-6);
+            var types = fields[0].split('|'); // 단일 문항은 타입 1개, 복합 문항은 "타입1|타입2"
+            var scores = fields.slice(1);
+            var text = tokens.slice(0, tokens.length - 6).join(',').trim();
+
+            questions.push({ text: text, types: types, scores: scores });
         }
-        result += '</tr>';
-        result += '</tbody></table>';
-        document.getElementById('question').innerHTML = result;
-    </script>
 
-    <br>
-    <input type="button" value="뒤로 가기" onClick="history.back()" />
-    <input type="button" value="다음으로" onClick="location.href='test.html'" />
+        var totalPages = Math.ceil(questions.length / PAGE_SIZE);
+        var currentPage = 0;
+        var answers = {};
+
+        var savedAnswers = localStorage.getItem(ANSWERS_KEY);
+        if (savedAnswers) {
+            answers = JSON.parse(savedAnswers);
+        }
+        var savedPage = localStorage.getItem(PAGE_KEY);
+        if (savedPage) {
+            currentPage = Math.min(Math.max(parseInt(savedPage, 10), 0), totalPages - 1);
+        }
+
+        function saveProgress() {
+            localStorage.setItem(ANSWERS_KEY, JSON.stringify(answers));
+            localStorage.setItem(PAGE_KEY, String(currentPage));
+        }
+
+        function renderProgress() {
+            var answeredCount = Object.keys(answers).length;
+            document.getElementById('progress').innerHTML =
+                (currentPage + 1) + ' / ' + totalPages + '페이지' +
+                '&nbsp;&nbsp;(' + answeredCount + ' / ' + questions.length + '문항 응답)';
+        }
+
+        function isPageComplete() {
+            var start = currentPage * PAGE_SIZE;
+            var end = Math.min(start + PAGE_SIZE, questions.length);
+            for (var i = start; i < end; i++) {
+                if (!answers[i]) return false;
+            }
+            return true;
+        }
+
+        function renderPage() {
+            var start = currentPage * PAGE_SIZE;
+            var end = Math.min(start + PAGE_SIZE, questions.length);
+
+            var html = '<table><thead><tr><th></th> <th>매우 그렇다</th> <th>그런 편이다</th>' +
+                '<th>때에 따라 다르다</th> <th>그렇지 않은 편이다</th> <th>전혀 그렇지 않다</th></tr></thead><tbody>';
+
+            for (var i = start; i < end; i++) {
+                var q = questions[i];
+                html += '<tr><td>' + (i + 1) + '. ' + q.text + '</td>';
+
+                for (var j = 0; j < q.scores.length; j++) {
+                    var value = '';
+                    for (var k = 0; k < q.types.length; k++) {
+                        if (k > 0) value += '|';
+                        value += q.types[k] + q.scores[j];
+                    }
+                    var checked = (answers[i] === value) ? ' checked' : '';
+                    html += '<td><input type="radio" name="t' + i + '" value="' + value + '"' + checked + '></input></td>';
+                }
+                html += '</tr>';
+            }
+            html += '</tbody></table>';
+            document.getElementById('question').innerHTML = html;
+
+            var radios = document.querySelectorAll('#question input[type="radio"]');
+            for (var r = 0; r < radios.length; r++) {
+                radios[r].addEventListener('change', function (e) {
+                    var qIndex = parseInt(e.target.name.slice(1), 10);
+                    answers[qIndex] = e.target.value;
+                    saveProgress();
+                    renderProgress();
+                });
+            }
+
+            document.getElementById('prevBtn').value = (currentPage === 0) ? '그만두기' : '뒤로 가기';
+            document.getElementById('nextBtn').value = (currentPage === totalPages - 1) ? '제출하기' : '다음으로';
+
+            renderProgress();
+        }
+
+        document.getElementById('prevBtn').addEventListener('click', function () {
+            if (currentPage === 0) {
+                location.href = 'poketest.html';
+                return;
+            }
+            currentPage--;
+            saveProgress();
+            renderPage();
+            window.scrollTo(0, 0);
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', function () {
+            if (!isPageComplete()) {
+                alert('이 페이지의 모든 문항에 답변해주세요.');
+                return;
+            }
+            if (currentPage < totalPages - 1) {
+                currentPage++;
+                saveProgress();
+                renderPage();
+                window.scrollTo(0, 0);
+            } else {
+                saveProgress();
+                location.href = 'result.html';
+            }
+        });
+
+        renderPage();
+    </script>
 </body>
 </html>
