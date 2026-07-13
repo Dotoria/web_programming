@@ -1,0 +1,12 @@
+{
+  "name": "poketest",
+  "compatibility_date": "2026-07-13",
+  "main": "src/index.js",
+  "assets": {
+    "directory": "./",
+    "binding": "ASSETS"
+  },
+  "kv_namespaces": [
+    { "binding": "REVIEWS_KV", "id": "REPLACE_WITH_KV_NAMESPACE_ID" }
+  ]
+}

@@ -1,0 +1,7 @@
+wrangler.jsonc
+src/
+package.json
+package-lock.json
+.claude/
+*.md
+testInfo.txt
