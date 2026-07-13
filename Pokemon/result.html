@@ -9,18 +9,13 @@
     <title>Poketest 결과</title>
 </head>
 <body>
-    <header>
-        <br><h1>당신의 포켓몬 타입은?</h1><br>
-        <hr />
+    <header class="simple">
+        <h1>당신의 포켓몬 타입은?</h1>
     </header>
 
-    <br>
-
-    <div id="result"></div>
-
-    <br>
-    <input type="button" value="다시 하기" onclick="retakeTest()" />
-    <input type="button" value="처음으로" onclick="location.href='poketest.html'" />
+    <div class="wrap">
+        <div id="result-content"></div>
+    </div>
 
     <script>
         var ANSWERS_KEY = 'poketestAnswers';
@@ -32,57 +27,97 @@
             location.href = 'test.html';
         }
 
-        function typeNames(keys) {
-            if (!keys || keys.length === 0) return '—';
-            var names = [];
+        function typeChips(keys) {
+            var html = '';
             for (var i = 0; i < keys.length; i++) {
-                names.push(TYPE_INFO[keys[i]].name);
+                var t = TYPE_INFO[keys[i]];
+                html += '<span class="type-chip" style="--chip-color:' + t.color + '">' +
+                    '<span class="type-chip-icon">' + t.icon + '</span>' + t.name + '</span>';
             }
-            return names.join(', ');
+            return html;
         }
 
-        function renderTypeCard(info) {
-            var html = '';
-            html += '<h3>' + info.name + ' (' + info.pokemon + ')</h3>';
-            html += '<p><strong>표면</strong>: ' + info.surface + '</p>';
-            html += '<p><strong>내면</strong>: ' + info.inner + '</p>';
-            html += '<ul style="text-align:left; display:inline-block;">';
-            html += '<li>나를 흔드는 상대: ' + typeNames(info.weakTo) + '</li>';
-            html += '<li>나에게 잘 안 통하는 상대: ' + typeNames(info.resists) + '</li>';
-            html += '<li>내가 주도권을 쥐는 상대: ' + typeNames(info.strongAgainst) + '</li>';
-            html += '</ul>';
+        function renderTypeCard(info, rankLabel) {
+            var html = '<div class="type-card" style="--type-color:' + info.color + '">';
+            html += '<div class="type-rank">' + rankLabel + '</div>';
+            html += '<h3 class="type-title"><span class="type-chip-icon">' + info.icon + '</span>' + info.name + '</h3>';
+            html += '<div class="pokemon-list">' + info.pokemon + '</div>';
+            html += '<p><strong>표면</strong> ' + info.surface + '</p>';
+            html += '<p><strong>내면</strong> ' + info.inner + '</p>';
             if (info.note) {
                 html += '<p><em>' + info.note + '</em></p>';
             }
+            html += '</div>';
             return html;
         }
 
-        function renderBars(averages) {
+        var MATCHUP_GROUPS = [
+            { key: 'x4',   mult: '×4', title: '치명적으로 흔들리는 상대', color: '#d63a55' },
+            { key: 'x2',   mult: '×2', title: '나를 흔드는 상대',         color: '#f08030' },
+            { key: 'x05',  mult: '×½', title: '잘 받아넘기는 상대',       color: '#3f9d63' },
+            { key: 'x025', mult: '×¼', title: '거의 통하지 않는 상대',    color: '#4f8ef7' },
+            { key: 'x0',   mult: '×0', title: '아예 통하지 않는 상대',    color: '#705898' }
+        ];
+
+        function renderMatchupCard(myTypes) {
+            var groups = computeMatchups(myTypes);
+            var html = '<section class="card">';
+            html += '<h2>나의 상성</h2>';
+            html += '<p>' + TYPE_INFO[myTypes[0]].name + ' · ' + TYPE_INFO[myTypes[1]].name +
+                ' 두 타입을 함께 가진 나를 기준으로, 상대 타입의 공격이 몇 배로 들어오는지 계산했어요.</p>';
+            html += '<div class="matchup-list">';
+            for (var i = 0; i < MATCHUP_GROUPS.length; i++) {
+                var g = MATCHUP_GROUPS[i];
+                if (groups[g.key].length === 0) continue;
+                html += '<div class="matchup-row" style="--mu-color:' + g.color + '">';
+                html += '<span class="mu-badge">' + g.mult + '</span>';
+                html += '<div class="mu-info">';
+                html += '<div class="mu-title">' + g.title + '</div>';
+                html += '<div class="mu-chips">' + typeChips(groups[g.key]) + '</div>';
+                html += '</div></div>';
+            }
+            html += '</div></section>';
+            return html;
+        }
+
+        function renderBar(type, avg) {
+            var widthPct = Math.max(0, Math.min(100, (avg / 5) * 100));
+            return '<div class="bar-row">' +
+                '<div class="bar-label">' + TYPE_INFO[type].name + '</div>' +
+                '<div class="bar-track"><div class="bar-fill" style="width:' + widthPct.toFixed(0) + '%; background:' + TYPE_INFO[type].color + '"></div></div>' +
+                '<div class="bar-value">' + avg.toFixed(1) + '</div>' +
+                '</div>';
+        }
+
+        function renderScoreCard(averages) {
             var sorted = TYPE_ORDER.slice();
             sorted.sort(function (a, b) { return averages[b] - averages[a]; });
+            var top = sorted.slice(0, 2);
+            var bottom = sorted.slice(-2);
 
-            var html = '<div class="table-scroll"><table style="width:80%; min-width:280px; margin:0 auto;">';
-            for (var i = 0; i < sorted.length; i++) {
-                var type = sorted[i];
-                var avg = averages[type];
-                var widthPct = Math.max(0, Math.min(100, (avg / 5) * 100));
-                html += '<tr>';
-                html += '<td style="text-align:right; width:15%;">' + TYPE_INFO[type].name + '</td>';
-                html += '<td style="width:65%;"><div style="background:#eee; border-radius:4px; overflow:hidden;">' +
-                    '<div style="background:burlywood; width:' + widthPct.toFixed(0) + '%; height:14px;"></div></div></td>';
-                html += '<td style="width:20%; text-align:left;">' + avg.toFixed(1) + ' / 5</td>';
-                html += '</tr>';
+            var html = '<section class="card">';
+            html += '<h2>타입 점수</h2>';
+            html += '<div class="score-group-label">나와 가장 가까운 타입</div>';
+            for (var i = 0; i < top.length; i++) {
+                html += renderBar(top[i], averages[top[i]]);
             }
-            html += '</table></div>';
+            html += '<div class="score-group-label">나와 가장 먼 타입</div>';
+            for (var j = 0; j < bottom.length; j++) {
+                html += renderBar(bottom[j], averages[bottom[j]]);
+            }
+            html += '</section>';
             return html;
         }
 
-        var resultEl = document.getElementById('result');
+        var resultEl = document.getElementById('result-content');
         var saved = localStorage.getItem(ANSWERS_KEY);
 
         if (!saved) {
-            resultEl.innerHTML = '<p>아직 테스트를 완료하지 않으셨어요.</p>' +
-                '<input type="button" value="테스트 하러 가기" onclick="location.href=\'test.html\'" />';
+            resultEl.innerHTML =
+                '<section class="card" style="text-align:center;">' +
+                '<p>아직 테스트를 완료하지 않으셨어요.</p>' +
+                '<div class="actions"><input type="button" value="테스트 하러 가기" onclick="location.href=\'test.html\'" /></div>' +
+                '</section>';
         } else {
             var answers = JSON.parse(saved);
             var scores = computeTypeScores(answers);
@@ -91,23 +126,32 @@
             var secondary = TYPE_INFO[topTypes[1]];
 
             var html = '';
-            html += '<section id="main-type">';
-            html += '<h2>' + primary.name + ' / ' + secondary.name + ' 타입입니다!</h2>';
-            html += renderTypeCard(primary);
-            html += '<hr>';
-            html += renderTypeCard(secondary);
+            html += '<section class="result-headline">';
+            html += '<div class="combo">';
+            html += '<div class="type-name" style="--combo-color:' + primary.color + '">' + primary.icon + ' ' + primary.name + '</div>';
+            html += '<div class="divider">×</div>';
+            html += '<div class="type-name" style="--combo-color:' + secondary.color + '">' + secondary.icon + ' ' + secondary.name + '</div>';
+            html += '</div>';
+            html += '<p>당신과 가장 잘 어울리는 포켓몬 타입 조합입니다</p>';
             html += '</section>';
 
-            html += '<br><section id="all-scores">';
-            html += '<h2>전체 타입 점수</h2>';
-            html += renderBars(scores.averages);
-            html += '</section>';
+            html += '<div class="type-card-row">';
+            html += renderTypeCard(primary, '제 1 타입');
+            html += renderTypeCard(secondary, '제 2 타입');
+            html += '</div>';
+
+            html += renderMatchupCard(topTypes);
+            html += renderScoreCard(scores.averages);
+
+            html += '<div class="actions">';
+            html += '<input type="button" value="다시 하기" onclick="retakeTest()" />';
+            html += '<input type="button" class="secondary" value="처음으로" onclick="location.href=\'poketest.html\'" />';
+            html += '</div>';
 
             resultEl.innerHTML = html;
         }
     </script>
 
-    <br>
     <footer>
         <a href="review.jsp">리뷰 남기러 가기</a>
     </footer>

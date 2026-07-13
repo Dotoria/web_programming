@@ -8,23 +8,31 @@
     <title>Poketest - 테스트</title>
 </head>
 <body>
-    <header>
-        <br><h1>포켓몬 타입 테스트</h1><br>
-        <hr />
+    <header class="simple">
+        <h1>포켓몬 타입 테스트</h1>
     </header>
 
-    <br>
-    <div id="progress"></div>
-    <br>
-    <div class="table-scroll"><span id="question"></span></div>
-    <br>
-    <input type="button" id="prevBtn" value="뒤로 가기" />
-    <input type="button" id="nextBtn" value="다음으로" />
+    <div id="progress-wrap">
+        <div id="progress-label"></div>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="wrap">
+        <div class="card">
+            <div id="question"></div>
+        </div>
+    </div>
+
+    <div id="nav-buttons">
+        <input type="button" class="secondary" id="prevBtn" value="뒤로 가기" />
+        <input type="button" id="nextBtn" value="다음으로" />
+    </div>
 
     <script>
-        var PAGE_SIZE = 10;
+        var PAGE_SIZE = 8;
         var ANSWERS_KEY = 'poketestAnswers';
         var PAGE_KEY = 'poketestPage';
+        var OPTION_LABELS = ['매우 그렇다', '그런 편이다', '때에 따라 다르다', '그렇지 않은 편이다', '전혀 그렇지 않다'];
 
         var request = new XMLHttpRequest();
         request.open('get', 'question.csv', false);
@@ -66,9 +74,11 @@
 
         function renderProgress() {
             var answeredCount = Object.keys(answers).length;
-            document.getElementById('progress').innerHTML =
-                (currentPage + 1) + ' / ' + totalPages + '페이지' +
-                '&nbsp;&nbsp;(' + answeredCount + ' / ' + questions.length + '문항 응답)';
+            document.getElementById('progress-label').innerHTML =
+                '<span>' + (currentPage + 1) + ' / ' + totalPages + '페이지</span>' +
+                '<span>' + answeredCount + ' / ' + questions.length + '문항 응답</span>';
+            var pct = Math.round((answeredCount / questions.length) * 100);
+            document.getElementById('progress-fill').style.width = pct + '%';
         }
 
         function isPageComplete() {
@@ -84,12 +94,13 @@
             var start = currentPage * PAGE_SIZE;
             var end = Math.min(start + PAGE_SIZE, questions.length);
 
-            var html = '<table><thead><tr><th></th> <th>매우 그렇다</th> <th>그런 편이다</th>' +
-                '<th>때에 따라 다르다</th> <th>그렇지 않은 편이다</th> <th>전혀 그렇지 않다</th></tr></thead><tbody>';
-
+            var html = '';
             for (var i = start; i < end; i++) {
                 var q = questions[i];
-                html += '<tr><td>' + (i + 1) + '. ' + q.text + '</td>';
+                html += '<div class="q-item">';
+                html += '<div class="q-text">' + (i + 1) + '. ' + q.text + '</div>';
+                html += '<div class="q-options">';
+                html += '<span class="q-scale-label agree">그렇다</span>';
 
                 for (var j = 0; j < q.scores.length; j++) {
                     var value = '';
@@ -98,11 +109,14 @@
                         value += q.types[k] + q.scores[j];
                     }
                     var checked = (answers[i] === value) ? ' checked' : '';
-                    html += '<td><input type="radio" name="t' + i + '" value="' + value + '"' + checked + '></input></td>';
+                    html += '<label class="check-option" title="' + OPTION_LABELS[j] + '">' +
+                        '<input type="radio" name="t' + i + '" value="' + value + '"' + checked + '>' +
+                        '<span class="circle-check">&#10003;</span></label>';
                 }
-                html += '</tr>';
+
+                html += '<span class="q-scale-label disagree">아니다</span>';
+                html += '</div></div>';
             }
-            html += '</tbody></table>';
             document.getElementById('question').innerHTML = html;
 
             var radios = document.querySelectorAll('#question input[type="radio"]');

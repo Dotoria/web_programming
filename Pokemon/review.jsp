@@ -115,54 +115,50 @@
     <title>Poketest 리뷰</title>
 </head>
 <body>
-    <header>
-        <br><h1>리뷰</h1><br>
-        <hr />
+    <header class="simple">
+        <h1>리뷰</h1>
     </header>
 
-    <br>
+    <div class="wrap">
+        <section class="card">
+            <h2>리뷰 남기기</h2>
+            <form class="review-form" method="post" onsubmit="return validateReview()">
+                <fieldset>
+                    <legend>리뷰 남기기</legend>
+                    <span class="field-label">닉네임</span>
+                    <input type="text" name="name" placeholder="익명" maxlength="20">
+                    <span class="field-label">패스워드</span>
+                    <input type="password" name="pass" placeholder="숫자 4자리" maxlength="4">
+                    <span class="field-label">내용</span>
+                    <textarea name="review" rows="3" cols="80"></textarea>
+                    <div class="actions" style="text-align:left; margin-top:16px;">
+                        <input type="submit" value="등록하기">
+                    </div>
+                    <p id="result"><%= errorMsg != null ? escapeHtml(errorMsg) : "" %></p>
+                </fieldset>
+            </form>
+        </section>
 
-    <article>
-        <form method="post" onsubmit="return validateReview()">
-            <fieldset>
-                <legend>리뷰 남기기</legend>
-                닉네임 &nbsp&nbsp &nbsp <input type="text" name="name" placeholder="익명" maxlength="20"><br>
-                패스워드 &nbsp <input type="password" name="pass" placeholder="숫자 4자리" maxlength="4"><br>
-                <br>
-                내용 &nbsp &nbsp &nbsp &nbsp
-                <textarea name="review" rows="3" cols="80"></textarea><br>
-                <input type="submit" value="등록하기">
-                <p id="result" style="color:red;"><%= errorMsg != null ? escapeHtml(errorMsg) : "" %></p>
-            </fieldset>
-        </form>
-    </article>
-
-    <br>
-
-    <article>
-        <h2>남겨진 리뷰 (<%= reviews.size() %>)</h2>
-        <% if (reviews.isEmpty()) { %>
-            <p>아직 리뷰가 없습니다. 첫 리뷰를 남겨주세요!</p>
-        <% } else { %>
-            <div class="table-scroll">
-            <table style="width:80%; min-width:280px; margin:0 auto; text-align:left;">
+        <section class="card">
+            <h2>남겨진 리뷰 (<%= reviews.size() %>)</h2>
+            <% if (reviews.isEmpty()) { %>
+                <p>아직 리뷰가 없습니다. 첫 리뷰를 남겨주세요!</p>
+            <% } else { %>
                 <% for (String[] r : reviews) {
                     long time = Long.parseLong(r[0]);
                     String name = unescapeField(r[1]);
                     String reviewText = unescapeField(r[3]);
                     String dateStr = sdf.format(new Date(time));
                 %>
-                <tr>
-                    <td style="width:20%; vertical-align:top;"><strong><%= escapeHtml(name) %></strong><br><small><%= dateStr %></small></td>
-                    <td style="white-space:pre-wrap;"><%= escapeHtml(reviewText) %></td>
-                </tr>
+                <div class="review-item">
+                    <div class="review-meta"><strong><%= escapeHtml(name) %></strong> · <%= dateStr %></div>
+                    <div class="review-body"><%= escapeHtml(reviewText) %></div>
+                </div>
                 <% } %>
-            </table>
-            </div>
-        <% } %>
-    </article>
+            <% } %>
+        </section>
+    </div>
 
-    <br>
     <footer>
         <a href="poketest.html">처음으로</a>
     </footer>
