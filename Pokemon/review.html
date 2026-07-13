@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link type="text/css" rel="stylesheet" href="poketest.css">
+    <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    <script src="review.js"></script>
+    <title>Poketest 리뷰</title>
+</head>
+<body>
+    <header class="simple">
+        <h1>리뷰</h1>
+    </header>
+
+    <div class="wrap">
+        <section class="card">
+            <h2>리뷰 남기기</h2>
+            <form class="review-form" method="post" onsubmit="return handleSubmit(event)">
+                <fieldset>
+                    <legend>리뷰 남기기</legend>
+                    <span class="field-label">닉네임</span>
+                    <input type="text" name="name" placeholder="익명" maxlength="20">
+                    <span class="field-label">패스워드</span>
+                    <input type="password" name="pass" placeholder="숫자 4자리" maxlength="4">
+                    <span class="field-label">내용</span>
+                    <textarea name="review" rows="3" cols="80"></textarea>
+                    <div class="actions" style="text-align:left; margin-top:16px;">
+                        <input type="submit" value="등록하기">
+                    </div>
+                    <p id="result"></p>
+                </fieldset>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2 id="review-count">남겨진 리뷰 (0)</h2>
+            <div id="review-list"></div>
+        </section>
+    </div>
+
+    <script>
+        var API_URL = '/api/reviews';
+        var currentData = { count: 0, reviews: [] };
+
+        function buildReviewItem(r) {
+            var item = document.createElement('div');
+            item.className = 'review-item';
+
+            var meta = document.createElement('div');
+            meta.className = 'review-meta';
+            var strong = document.createElement('strong');
+            strong.textContent = r.name;
+            meta.appendChild(strong);
+            meta.appendChild(document.createTextNode(' · ' + r.date));
+
+            var body = document.createElement('div');
+            body.className = 'review-body';
+            body.textContent = r.review;
+
+            item.appendChild(meta);
+            item.appendChild(body);
+            return item;
+        }
+
+        function renderReviews(data) {
+            var listEl = document.getElementById('review-list');
+            var countEl = document.getElementById('review-count');
+            countEl.textContent = '남겨진 리뷰 (' + data.count + ')';
+
+            listEl.innerHTML = '';
+            if (!data.reviews || data.reviews.length === 0) {
+                var emptyP = document.createElement('p');
+                emptyP.textContent = '아직 리뷰가 없습니다. 첫 리뷰를 남겨주세요!';
+                listEl.appendChild(emptyP);
+                return;
+            }
+
+            for (var i = 0; i < data.reviews.length; i++) {
+                listEl.appendChild(buildReviewItem(data.reviews[i]));
+            }
+        }
+
+        function loadReviews() {
+            fetch(API_URL)
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    currentData = data;
+                    renderReviews(currentData);
+                })
+                .catch(function () {
+                    var listEl = document.getElementById('review-list');
+                    listEl.innerHTML = '';
+                    var p = document.createElement('p');
+                    p.textContent = '리뷰를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.';
+                    listEl.appendChild(p);
+                });
+        }
+
+        function handleSubmit(event) {
+            event.preventDefault();
+            if (!validateReview()) return false;
+
+            var form = event.target;
+            var name = form.elements['name'].value;
+            var pass = form.elements['pass'].value;
+            var review = form.elements['review'].value;
+
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name, pass: pass, review: review })
+            })
+                .then(function (res) {
+                    return res.json().then(function (data) {
+                        return { status: res.status, data: data };
+                    });
+                })
+                .then(function (result) {
+                    var resultEl = document.getElementById('result');
+                    if (result.status >= 200 && result.status < 300) {
+                        resultEl.textContent = '';
+                        form.reset();
+                        currentData.reviews.unshift(result.data.review);
+                        currentData.count = currentData.reviews.length;
+                        renderReviews(currentData);
+                    } else {
+                        resultEl.textContent = result.data.error || '리뷰 등록에 실패했습니다.';
+                    }
+                })
+                .catch(function () {
+                    document.getElementById('result').textContent = '서버와 통신할 수 없습니다. 잠시 후 다시 시도해주세요.';
+                });
+
+            return false;
+        }
+
+        loadReviews();
+    </script>
+
+    <footer>
+        <a href="poketest.html">처음으로</a>
+    </footer>
+</body>
+</html>
