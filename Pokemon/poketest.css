@@ -513,6 +513,252 @@ input[type="submit"]:disabled {
     border-radius: 999px;
 }
 
+/* 결과 조합과 완벽하게 일치하는 포켓몬 카드 */
+.exact-pokemon {
+    text-align: center;
+}
+
+.exact-pokemon-name {
+    font-family: var(--font-display);
+    font-size: 2em;
+    color: var(--color-primary-dark);
+    margin: 6px 0 2px;
+}
+
+/* 상성 칩을 눌렀을 때 나오는 타입 설명 */
+.type-chip {
+    cursor: pointer;
+    font-family: inherit;
+}
+
+button.type-chip:hover {
+    filter: brightness(0.96);
+}
+
+button.type-chip {
+    box-shadow: none;
+    transition: none;
+}
+
+button.type-chip:active {
+    transform: none;
+}
+
+.type-peek {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--chip-color, var(--color-primary)) 8%, white);
+    border: 1.5px solid color-mix(in srgb, var(--chip-color, var(--color-primary)) 35%, white);
+    font-size: 0.92em;
+}
+
+.type-peek .type-peek-head {
+    font-family: var(--font-display);
+    font-size: 1.1em;
+    color: color-mix(in srgb, var(--chip-color, var(--color-primary)) 65%, black);
+    margin-bottom: 6px;
+}
+
+.type-peek p {
+    margin: 4px 0;
+}
+
+/* 결과 공유 */
+.shared-banner {
+    background: var(--color-primary-soft);
+    border: 1.5px dashed var(--color-primary);
+    color: var(--color-primary-dark);
+    border-radius: var(--radius-md);
+    text-align: center;
+    padding: 10px 16px;
+    margin-bottom: 18px;
+    font-weight: 700;
+}
+
+.share-row {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+}
+
+.share-row .share-url {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 10px 14px;
+    border: 1.5px solid var(--color-border);
+    border-radius: 999px;
+    font-size: 0.88em;
+    color: var(--color-text-muted);
+    background: var(--color-bg);
+}
+
+.share-row button {
+    flex-shrink: 0;
+    padding: 10px 22px;
+    font-size: 0.95em;
+    white-space: nowrap;
+}
+
+/* ---------- party page ---------- */
+
+.party-form .field-label {
+    display: block;
+    font-size: 0.88em;
+    font-weight: 700;
+    margin: 14px 0 6px;
+}
+
+.party-form input[type="text"] {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 1em;
+    font-family: inherit;
+    background: var(--color-bg);
+}
+
+.party-form input[type="text"]:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background: var(--color-surface);
+}
+
+.party-or {
+    margin: 16px 0 8px;
+    font-size: 0.85em;
+    color: var(--color-text-muted);
+    text-align: center;
+}
+
+.party-selects {
+    display: flex;
+    gap: 10px;
+}
+
+.party-selects select {
+    flex: 1 1 0;
+    padding: 10px 12px;
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 0.95em;
+    font-family: inherit;
+    background: var(--color-bg);
+}
+
+.party-error {
+    margin-top: 12px;
+    color: var(--color-danger);
+    font-size: 0.88em;
+    text-align: center;
+}
+
+.member-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.member-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+}
+
+.member-item .member-name {
+    font-weight: 700;
+    min-width: 60px;
+}
+
+.member-item .member-types {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+}
+
+.member-remove {
+    background: none;
+    border: none;
+    box-shadow: none;
+    color: var(--color-text-muted);
+    font-size: 1em;
+    padding: 4px 8px;
+    cursor: pointer;
+    width: auto !important;
+}
+
+.member-remove:active {
+    transform: none;
+}
+
+.graph-holder {
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.graph-holder svg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.table-scroll {
+    overflow-x: auto;
+}
+
+.party-matrix {
+    border-collapse: collapse;
+    margin: 0 auto;
+    font-size: 0.9em;
+}
+
+.party-matrix th,
+.party-matrix td {
+    border: 1px solid var(--color-border);
+    padding: 8px 12px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.party-matrix th {
+    background: var(--color-bg);
+    font-family: var(--font-display);
+    font-weight: 400;
+}
+
+.party-matrix th.corner {
+    font-size: 0.78em;
+    color: var(--color-text-muted);
+}
+
+.party-matrix td.self { color: var(--color-border); }
+.party-matrix td.mx4 { background: #ffd9e0; color: #b01e3c; font-weight: 700; }
+.party-matrix td.mx2 { background: #ffe8d6; color: #b35a12; font-weight: 700; }
+.party-matrix td.mx1 { color: var(--color-text-muted); }
+.party-matrix td.mxhalf { background: #dff0e5; color: #2c7a4b; }
+.party-matrix td.mx0 { background: #e8e2f2; color: #5c4a86; }
+
+.pair-summary {
+    margin-top: 14px;
+    font-size: 0.9em;
+}
+
+.pair-summary ul {
+    margin: 0;
+    padding-left: 1.2em;
+    color: var(--color-text-muted);
+}
+
+.pair-summary li {
+    margin: 4px 0;
+}
+
 .result-headline {
     text-align: center;
 }
@@ -779,5 +1025,28 @@ footer .sep {
     .bar-row {
         grid-template-columns: 56px 1fr 44px;
         font-size: 0.82em;
+    }
+
+    button.type-chip,
+    .member-remove {
+        width: auto;
+        padding: 3px 10px 3px 8px;
+        font-size: 0.82em;
+    }
+
+    .member-remove {
+        padding: 4px 8px;
+    }
+
+    .share-row {
+        flex-direction: column;
+    }
+
+    .share-row button {
+        width: 100%;
+    }
+
+    .party-selects {
+        flex-direction: column;
     }
 }

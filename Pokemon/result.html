@@ -18,8 +18,8 @@
     </div>
 
     <script>
-        var ANSWERS_KEY = 'poketestAnswers';
-        var PAGE_KEY = 'poketestPage';
+        var ANSWERS_KEY = 'poketestAnswersV2';
+        var PAGE_KEY = 'poketestPageV2';
 
         function retakeTest() {
             localStorage.removeItem(ANSWERS_KEY);
@@ -31,8 +31,9 @@
             var html = '';
             for (var i = 0; i < keys.length; i++) {
                 var t = TYPE_INFO[keys[i]];
-                html += '<span class="type-chip" style="--chip-color:' + t.color + '">' +
-                    '<span class="type-chip-icon">' + t.icon + '</span>' + t.name + '</span>';
+                html += '<button type="button" class="type-chip" data-type="' + keys[i] + '"' +
+                    ' style="--chip-color:' + t.color + '" title="' + t.name + ' 타입 설명 보기">' +
+                    '<span class="type-chip-icon">' + t.icon + '</span>' + t.name + '</button>';
             }
             return html;
         }
@@ -41,13 +42,32 @@
             var html = '<div class="type-card" style="--type-color:' + info.color + '">';
             html += '<div class="type-rank">' + rankLabel + '</div>';
             html += '<h3 class="type-title"><span class="type-chip-icon">' + info.icon + '</span>' + info.name + '</h3>';
-            html += '<div class="pokemon-list">' + info.pokemon + '</div>';
             html += '<p><strong>표면</strong> ' + info.surface + '</p>';
             html += '<p><strong>내면</strong> ' + info.inner + '</p>';
             if (info.note) {
                 html += '<p><em>' + info.note + '</em></p>';
             }
             html += '</div>';
+            return html;
+        }
+
+        // 결과 타입 조합과 완벽하게 일치하는 포켓몬 소개 카드
+        function renderExactPokemonCard(types) {
+            var names = [];
+            for (var i = 0; i < types.length; i++) names.push(TYPE_INFO[types[i]].name);
+            var comboLabel = names.join(' · ');
+
+            var pokemon = getExactPokemon(types);
+            var html = '<section class="card exact-pokemon">';
+            html += '<h2>나와 타입이 완벽하게 일치하는 포켓몬</h2>';
+            if (pokemon) {
+                html += '<div class="exact-pokemon-name">' + pokemon + '</div>';
+                html += '<p>' + comboLabel + ' 타입을 그대로 가진 포켓몬이에요. 나의 포켓몬 분신이라고 할 수 있죠!</p>';
+            } else {
+                html += '<div class="exact-pokemon-name">???</div>';
+                html += '<p>' + comboLabel + ' 조합을 가진 포켓몬은 아직 도감에도 없어요. 세상에 없는 특별한 조합이라는 뜻!</p>';
+            }
+            html += '</section>';
             return html;
         }
 
@@ -61,11 +81,14 @@
 
         function renderMatchupCard(myTypes) {
             var groups = computeMatchups(myTypes);
+            var names = [];
+            for (var n = 0; n < myTypes.length; n++) names.push(TYPE_INFO[myTypes[n]].name);
+
             var html = '<section class="card">';
             html += '<h2>나의 상성</h2>';
-            html += '<p>' + TYPE_INFO[myTypes[0]].name + ' · ' + TYPE_INFO[myTypes[1]].name +
-                ' 두 타입을 함께 가진 나를 기준으로, 상대 타입의 공격이 몇 배로 들어오는지 계산했어요.</p>';
-            html += '<div class="matchup-list">';
+            html += '<p>' + names.join(' · ') + ' 타입인 나를 기준으로, 상대 타입의 공격이 몇 배로 들어오는지 계산했어요. ' +
+                '타입을 누르면(또는 마우스를 올리면) 그 타입이 어떤 사람인지 볼 수 있어요.</p>';
+            html += '<div class="matchup-list" id="matchup-list">';
             for (var i = 0; i < MATCHUP_GROUPS.length; i++) {
                 var g = MATCHUP_GROUPS[i];
                 if (groups[g.key].length === 0) continue;
@@ -76,7 +99,9 @@
                 html += '<div class="mu-chips">' + typeChips(groups[g.key]) + '</div>';
                 html += '</div></div>';
             }
-            html += '</div></section>';
+            html += '</div>';
+            html += '<div class="type-peek" id="type-peek" hidden></div>';
+            html += '</section>';
             return html;
         }
 
@@ -90,8 +115,7 @@
         }
 
         function renderScoreCard(averages) {
-            var sorted = TYPE_ORDER.slice();
-            sorted.sort(function (a, b) { return averages[b] - averages[a]; });
+            var sorted = getTopTypes(averages, 18);
             var top = sorted.slice(0, 2);
             var bottom = sorted.slice(-2);
 
@@ -109,46 +133,168 @@
             return html;
         }
 
-        var resultEl = document.getElementById('result-content');
-        var saved = localStorage.getItem(ANSWERS_KEY);
-
-        if (!saved) {
-            resultEl.innerHTML =
-                '<section class="card" style="text-align:center;">' +
-                '<p>아직 테스트를 완료하지 않으셨어요.</p>' +
-                '<div class="actions"><input type="button" value="테스트 하러 가기" onclick="location.href=\'test.html\'" /></div>' +
-                '</section>';
-        } else {
-            var answers = JSON.parse(saved);
-            var scores = computeTypeScores(answers);
-            var topTypes = getTopTypes(scores.averages, 2);
-            var primary = TYPE_INFO[topTypes[0]];
-            var secondary = TYPE_INFO[topTypes[1]];
-
-            var html = '';
-            html += '<section class="result-headline">';
-            html += '<div class="combo">';
-            html += '<div class="type-name" style="--combo-color:' + primary.color + '">' + primary.icon + ' ' + primary.name + '</div>';
-            html += '<div class="divider">×</div>';
-            html += '<div class="type-name" style="--combo-color:' + secondary.color + '">' + secondary.icon + ' ' + secondary.name + '</div>';
+        function renderShareCard(shareCode) {
+            var html = '<section class="card share-card">';
+            html += '<h2>결과 공유하기</h2>';
+            html += '<p>이 링크를 열면 누구나 내 결과를 그대로 볼 수 있어요.</p>';
+            html += '<div class="share-row">';
+            html += '<input type="text" id="share-url" class="share-url" readonly>';
+            html += '<button type="button" id="copy-share">링크 복사</button>';
             html += '</div>';
-            html += '<p>당신과 가장 잘 어울리는 포켓몬 타입 조합입니다</p>';
+            html += '<div class="actions">';
+            html += '<button type="button" class="secondary" onclick="location.href=\'party.html?add=' + shareCode + '\'">친구들과 상성 보기</button>';
+            html += '</div>';
             html += '</section>';
+            return html;
+        }
+
+        function headlineHtml(result) {
+            var html = '<section class="result-headline">';
+            html += '<div class="combo">';
+            for (var i = 0; i < result.types.length; i++) {
+                var info = TYPE_INFO[result.types[i]];
+                if (i > 0) html += '<div class="divider">×</div>';
+                html += '<div class="type-name" style="--combo-color:' + info.color + '">' + info.icon + ' ' + info.name + '</div>';
+            }
+            html += '</div>';
+            if (result.mode === 'flat') {
+                html += '<p>모든 타입에 고르게 걸쳐 있는, 진정한 밸런스형이에요.</p>';
+            } else if (result.mode === 'single') {
+                html += '<p>한 가지 색이 뚜렷한, 순수 단일 타입이에요.</p>';
+            } else {
+                html += '<p>당신과 가장 잘 어울리는 포켓몬 타입 조합입니다.</p>';
+            }
+            html += '</section>';
+            return html;
+        }
+
+        function renderResult(averages, totals, isShared) {
+            var result = decideResult(averages);
+            var html = '';
+
+            if (isShared) {
+                html += '<div class="shared-banner">👀 친구가 공유한 결과를 보고 있어요.</div>';
+            }
+
+            html += headlineHtml(result);
 
             html += '<div class="type-card-row">';
-            html += renderTypeCard(primary, '제 1 타입');
-            html += renderTypeCard(secondary, '제 2 타입');
+            if (result.types.length === 1) {
+                var label = (result.mode === 'flat') ? '밸런스형 단일 타입' : '단일 타입';
+                html += renderTypeCard(TYPE_INFO[result.types[0]], label);
+            } else {
+                html += renderTypeCard(TYPE_INFO[result.types[0]], '제 1 타입');
+                html += renderTypeCard(TYPE_INFO[result.types[1]], '제 2 타입');
+            }
             html += '</div>';
 
-            html += renderMatchupCard(topTypes);
-            html += renderScoreCard(scores.averages);
+            html += renderExactPokemonCard(result.types);
+            html += renderMatchupCard(result.types);
+            html += renderScoreCard(averages);
+
+            var shareCode = encodeShareCode(totals);
+            html += renderShareCard(shareCode);
 
             html += '<div class="actions">';
-            html += '<input type="button" value="다시 하기" onclick="retakeTest()" />';
-            html += '<input type="button" class="secondary" value="처음으로" onclick="location.href=\'index.html\'" />';
+            if (isShared) {
+                html += '<input type="button" value="나도 테스트 하기" onclick="location.href=\'index.html\'" />';
+            } else {
+                html += '<input type="button" value="다시 하기" onclick="retakeTest()" />';
+                html += '<input type="button" class="secondary" value="처음으로" onclick="location.href=\'index.html\'" />';
+            }
             html += '</div>';
 
+            var resultEl = document.getElementById('result-content');
             resultEl.innerHTML = html;
+
+            // 공유 URL 세팅 + 복사 버튼
+            var shareUrl = location.origin + location.pathname + '?s=' + shareCode;
+            document.getElementById('share-url').value = shareUrl;
+            document.getElementById('copy-share').addEventListener('click', function () {
+                var input = document.getElementById('share-url');
+                var done = function () {
+                    var btn = document.getElementById('copy-share');
+                    btn.textContent = '복사 완료!';
+                    setTimeout(function () { btn.textContent = '링크 복사'; }, 1600);
+                };
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(shareUrl).then(done, function () {
+                        input.select(); document.execCommand('copy'); done();
+                    });
+                } else {
+                    input.select(); document.execCommand('copy'); done();
+                }
+            });
+
+            // 상성 타입 칩: 클릭/호버 시 해당 타입 설명 표시
+            var list = document.getElementById('matchup-list');
+            var peek = document.getElementById('type-peek');
+            var pinnedType = null;
+
+            function showPeek(typeKey) {
+                var t = TYPE_INFO[typeKey];
+                peek.innerHTML =
+                    '<div class="type-peek-head" style="--chip-color:' + t.color + '">' +
+                    '<span class="type-chip-icon">' + t.icon + '</span>' + t.name + ' 타입은 이런 사람</div>' +
+                    '<p><strong>표면</strong> ' + t.surface + '</p>' +
+                    '<p><strong>내면</strong> ' + t.inner + '</p>';
+                peek.style.setProperty('--chip-color', t.color);
+                peek.hidden = false;
+            }
+
+            function chipOf(e) {
+                var el = e.target;
+                while (el && el !== list) {
+                    if (el.classList && el.classList.contains('type-chip')) return el;
+                    el = el.parentNode;
+                }
+                return null;
+            }
+
+            list.addEventListener('click', function (e) {
+                var chip = chipOf(e);
+                if (!chip) return;
+                var type = chip.getAttribute('data-type');
+                if (pinnedType === type) {
+                    pinnedType = null;
+                    peek.hidden = true;
+                } else {
+                    pinnedType = type;
+                    showPeek(type);
+                }
+            });
+            list.addEventListener('mouseover', function (e) {
+                var chip = chipOf(e);
+                if (chip) showPeek(chip.getAttribute('data-type'));
+            });
+            list.addEventListener('mouseout', function (e) {
+                var chip = chipOf(e);
+                if (!chip) return;
+                if (pinnedType) showPeek(pinnedType);
+                else peek.hidden = true;
+            });
+        }
+
+        var resultEl = document.getElementById('result-content');
+
+        // 1) 공유 링크(?s=...)로 들어온 경우 그 데이터로 렌더링
+        var sharedData = decodeShareCode(location.search);
+
+        if (sharedData) {
+            renderResult(sharedData.averages, sharedData.totals, true);
+        } else {
+            // 2) 내 테스트 결과 (localStorage)
+            var saved = localStorage.getItem(ANSWERS_KEY);
+            if (!saved) {
+                resultEl.innerHTML =
+                    '<section class="card" style="text-align:center;">' +
+                    '<p>아직 테스트를 완료하지 않으셨어요.</p>' +
+                    '<div class="actions"><input type="button" value="테스트 하러 가기" onclick="location.href=\'test.html\'" /></div>' +
+                    '</section>';
+            } else {
+                var scores = computeTypeScores(JSON.parse(saved));
+                renderResult(scores.averages, scores.totals, false);
+            }
         }
     </script>
 
