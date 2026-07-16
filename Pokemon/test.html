@@ -24,8 +24,8 @@
     </div>
 
     <div id="nav-buttons">
-        <input type="button" class="secondary" id="prevBtn" value="뒤로 가기" />
-        <input type="button" id="nextBtn" value="다음으로" />
+        <input type="button" class="secondary" id="prevBtn" value="‹ 이전" />
+        <input type="button" id="nextBtn" value="다음 ›" />
     </div>
 
     <script>
@@ -129,17 +129,14 @@
                 });
             }
 
-            document.getElementById('prevBtn').value = (currentPage === 0) ? '그만두기' : '뒤로 가기';
-            document.getElementById('nextBtn').value = (currentPage === totalPages - 1) ? '제출하기' : '다음으로';
+            document.getElementById('prevBtn').disabled = (currentPage === 0);
+            document.getElementById('nextBtn').value = (currentPage === totalPages - 1) ? '제출하기' : '다음 ›';
 
             renderProgress();
         }
 
         document.getElementById('prevBtn').addEventListener('click', function () {
-            if (currentPage === 0) {
-                location.href = 'index.html';
-                return;
-            }
+            if (currentPage === 0) return;
             currentPage--;
             saveProgress();
             renderPage();

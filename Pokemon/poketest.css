@@ -1011,8 +1011,10 @@ footer .sep {
         font-size: 1em;
     }
 
-    #nav-buttons {
-        flex-direction: column;
+    #nav-buttons input[type="button"] {
+        width: auto;
+        flex: 1 1 0;
+        padding: 14px 6px;
     }
 
     .actions button,
